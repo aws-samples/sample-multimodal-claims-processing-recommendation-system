@@ -1,0 +1,7 @@
+Host ssh.gitlab.aws.dev     
+    User git
+    IdentityFile :USERPROFILE\.ssh\id_ecdsa
+    CertificateFile :USERPROFILE\.ssh\id_ecdsa-cert.pub
+    IdentitiesOnly yes
+    ProxyCommand none
+    ProxyJump none
