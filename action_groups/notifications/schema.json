@@ -1,0 +1,58 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Notification API",
+        "version": "1.0.0",
+        "description": "API for sending notifications"
+    },
+    "paths": {
+        "/sendNotification": {
+            "post": {
+                "summary": "Send a notification",
+                "operationId": "sendNotification",
+                "description": "Sends a notification via SNS",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["subject", "message"],
+                                "properties": {
+                                    "subject": {
+                                        "type": "string",
+                                        "description": "Subject of the notification"
+                                    },
+                                    "message": {
+                                        "type": "string",
+                                        "description": "Body of the notification message"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Notification sent successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "messageId": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

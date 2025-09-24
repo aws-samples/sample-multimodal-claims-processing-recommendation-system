@@ -1,0 +1,25 @@
+Insurance Terms Glossary:
+
+1. Claim Processing Terms:
+   - Claim: Formal request for coverage after an incident
+   - First Notice of Loss (FNOL): Initial report of damage
+   - Estimate: Professional assessment of repair costs
+   - Processing Time: Duration to review and approve claim
+
+2. Coverage Terms:
+   - Policy: Contract between insurer and policyholder
+   - Premium: Monthly/annual payment for coverage
+   - Coverage Period: Duration of active insurance
+   - Policy Limit: Maximum amount insurance will pay
+
+3. Vehicle Terms:
+   - Total Loss: Damage exceeds 75% of vehicle value
+   - VIN: Vehicle Identification Number
+   - Market Value: Current worth of vehicle
+   - Depreciation: Reduction in vehicle value over time
+
+4. Documentation Terms:
+   - Police Report: Official accident documentation
+   - Repair Estimate: Detailed cost breakdown
+   - Claim Form: Official insurance claim document
+

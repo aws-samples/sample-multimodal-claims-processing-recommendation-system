@@ -1,0 +1,70 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Image Analysis API",
+        "version": "1.0.0",
+        "description": "Analyze vehicle damage images using Claude 3"
+    },
+    "paths": {
+        "/analyzeImage": {
+            "post": {
+                "summary": "Analyze vehicle damage from image",
+                "operationId": "analyzeImage",
+                "description": "checking damage images",
+                "requestBody": {
+                    "required": false,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": ["image_file"],
+                                "properties": {
+                                    "image_file": {
+                                        "type": "string",
+                                        "description": "S3 path to the image"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Image analysis results",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "damage_description": {
+                                            "type": "string"
+                                        },
+                                        "severity": {
+                                            "type": "string",
+                                            "enum": ["minor", "moderate", "severe"]
+                                        },
+                                        "affected_areas": {
+                                            "type": "array",
+                                            "items": {
+                                                "type": "string"
+                                            }
+                                        },
+                                        "estimated_cost_from_image": {
+                                            "type": "number"
+                                        },
+                                        "additional_notes":{
+                                            "type": "string"
+                                        },
+                                         "claim_id":{
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

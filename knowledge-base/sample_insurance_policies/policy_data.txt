@@ -1,0 +1,53 @@
+Active Insurance Policies:
+
+1. Policy: AUTO-1234-5678
+   Status: ACTIVE
+   Type: Basic Coverage
+   Details:
+   - Valid until: 2026-12-31
+   - Vehicle: 2022 Toyota Camry
+   - VIN: 1HGCM82633A123456
+
+2. Policy: AUTO-5678-9012
+   Status: ACTIVE
+   Type: Premium Coverage
+   Details:
+   - Valid until: 2026-10-15
+   - Vehicle: 2023 Honda CR-V
+   - VIN: 2FMZA52234B678901
+
+3. Policy: AUTO-9012-3456
+   Status: ACTIVE
+   Type: Minimum Coverage
+   Details:
+   - Valid until: 2027-08-30
+   - Vehicle: 2021 Ford Focus
+   - VIN: 3VWFA71K86M234567
+
+Inactive Insurance Policies:
+
+1. Policy: AUTO-2468-1357
+   Status: EXPIRED
+   Type: Basic Coverage
+   Details:
+   - Expired on: 2025-01-15
+   - Vehicle: 2020 Mazda 3
+   - VIN: 4MNBC52234B891011
+
+2. Policy: AUTO-1357-2468
+   Status: CANCELLED
+   Type: Premium Coverage
+   Details:
+   - Cancelled on: 2025-03-01
+   - Vehicle: 2021 Tesla Model 3
+   - VIN: 5TSLA71K86M345678
+
+3. Policy: AUTO-3690-1234
+   Status: SUSPENDED
+   Type: Minimum Coverage
+   Details:
+   - Suspended on: 2025-04-01
+   - Vehicle: 2019 BMW 330i
+   - VIN: 6BMWX52234B123789
+
+

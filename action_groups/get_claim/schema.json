@@ -1,0 +1,74 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Get Claim Details",
+    "version": "1.0.0",
+    "description": "Fetch the latest version of an existing claim by claim ID"
+  },
+  "paths": {
+    "/getClaimById": {
+      "post": {
+        "summary": "Retrieve a claim by its claim ID",
+        "operationId": "getClaimById",
+        "description": "Fetch the latest version of an existing claim by claim ID",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "claim_id": {
+                    "type": "string",
+                    "description": "The ID of the claim to retrieve"
+                  }
+                },
+                "required": ["claim_id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Claim retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "message": { "type": "string" },
+                    "claim_exists": { "type": "boolean" },
+                    "claim_id": { "type": "string" },
+                    "claim_data": {
+                      "type": "object",
+                      "properties": {
+                        "status": { "type": "string" },
+                        "version_summary": { "type": "object" },
+                        "claim_details": { "type": "object" },
+                        "documents": { "type": "object" }
+                      }
+                    },
+                    "claim_history": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "version": { "type": "string" },
+                          "version_summary": { "type": "object" },
+                          "documents": { 
+                            "type": "array",
+                            "items": { "type": "string" }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

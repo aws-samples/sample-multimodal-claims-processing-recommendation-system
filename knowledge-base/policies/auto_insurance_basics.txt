@@ -1,0 +1,22 @@
+Auto Insurance Policy Guidelines:
+
+1. Policy Number Format:
+   - Format: AUTO-XXXX-XXXX
+   - Example: AUTO-1234-5678
+   - Must be active policy
+
+2. Coverage Periods:
+   - Policies are valid for 12 months
+   - Claims must be filed within 30 days of incident
+
+3. Documentation Required for Accident related claims:
+   - The claim form
+   - Photo of damage
+   - Repair estimate from approved shop
+   - Police report 
+
+
+4. Documentation Required for Theft related claims:
+   - The claim form 
+   - Police report 
+

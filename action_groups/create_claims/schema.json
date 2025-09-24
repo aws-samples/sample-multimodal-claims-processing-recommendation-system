@@ -1,0 +1,224 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+        "title": "Claims Management API",
+        "version": "1.0.0",
+        "description": "API for creating and updating claims in DynamoDB with versioning"
+    },
+    "paths": {
+        "/createClaim": {
+            "post": {
+                "summary": "Create or update a claim entry",
+                "operationId": "createClaim",
+                "description": "Creates a new version of a claim in DynamoDB",
+                "requestBody": {
+                    "required": true,
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "type": "object",
+                                "required": [
+                                    "claim_id"
+                                ],
+                                "properties": {
+                                    "claim_id": {
+                                        "type": "string",
+                                        "description": "Unique claim identifier"
+                                    },
+                                    "version": {
+                                        "type": "string",
+                                        "description": "Version timestamp"
+                                    },
+                                    "is_latest": {
+                                        "type": "boolean",
+                                        "description": "Whether this is the latest version",
+                                        "default": true
+                                    },
+                                    "status": {
+                                        "type": "string",
+                                        "enum": [
+                                            "PENDING",
+                                            "APPROVED",
+                                            "DENIED"
+                                        ],
+                                        "default": "PENDING",
+                                        "description": "Current status of the claim"
+                                    },
+                                    "version_summary": {
+                                        "type": "object",
+                                        "properties": {
+                                            "document_uploaded": {
+                                                "type": "string",
+                                                "description": "Name of document that triggered this version"
+                                            },
+                                            "document_analysis": {
+                                                "type": "string",
+                                                "description": "Analysis of the uploaded document"
+                                            },
+                                            "claim_status": {
+                                                "type": "string",
+                                                "description": "Current status of claim"
+                                            },
+                                            "remaining_requirements": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                },
+                                                "description": "List of documents/info still needed"
+                                            },
+                                            "next_steps": {
+                                                "type": "string",
+                                                "description": "What needs to be done next"
+                                            }
+                                        }
+                                    },
+                                    "claim_details": {
+                                        "type": "object",
+                                        "description": "Core claim information - only include data explicitly found in documents",
+                                        "properties": {
+                                            "policy_number": {
+                                                "type": "string",
+                                                "description": "Policy number from document"
+                                            },
+                                            "active_policy": {
+                                                "type": "boolean",
+                                                "description": "Policy status from knowledge base validation"
+                                            },
+                                            "customer_id": {
+                                                "type": "string",
+                                                "description": "Customer ID from document"
+                                            },
+                                            "incident_date": {
+                                                "type": "string",
+                                                "format": "date",
+                                                "description": "Date of incident from document"
+                                            },
+                                            "reported_within_thirty_days": {
+                                                "type": "boolean",
+                                                "description": "Calculated based on incident_date vs today"
+                                            },
+                                            "incident_location": {
+                                                "type": "string",
+                                                "description": "Location of incident from document"
+                                            },
+                                            "claim_type": {
+                                                "type": "string",
+                                                "enum": [
+                                                    "accident",
+                                                    "theft"
+                                                ],
+                                                "description": "Type determined from incident description"
+                                            },
+                                            "coverage_type": {
+                                                "type": "string",
+                                                "description": "Coverage level from knowledge base based on policy"
+                                            },
+                                            "deductible": {
+                                                "type": "number",
+                                                "description": "Deductible amount from knowledge base based on policy"
+                                            },
+                                            "estimated_cost_from_image": {
+                                                "type": "string",
+                                                "description": "AI-estimated repair cost from damage photos - only if image analysis performed"
+                                            },
+                                            "total_repair_cost": {
+                                                "type": "number",
+                                                "description": "Official repair estimate from document - only if explicitly stated in document"
+                                            }
+                                        }
+                                    },
+                                    "vehicle_info": {
+                                        "type": "object",
+                                        "description": "Vehicle details - only include data explicitly found in documents",
+                                        "properties": {
+                                            "make": {
+                                                "type": "string",
+                                                "description": "Vehicle make from document"
+                                            },
+                                            "model": {
+                                                "type": "string",
+                                                "description": "Vehicle model from document"
+                                            },
+                                            "year": {
+                                                "type": "number",
+                                                "description": "Vehicle year from document"
+                                            },
+                                            "vin": {
+                                                "type": "string",
+                                                "description": "Vehicle VIN from document"
+                                            }
+                                        }
+                                    },
+                                    "documents": {
+                                        "type": "object",
+                                        "properties": {
+                                            "current_uploaded_documents": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "required_documents": {
+                                                "type": "array",
+                                                "items": {
+                                                    "type": "string"
+                                                }
+                                            },
+                                            "missing_documents": {
+                                                "type": "boolean",
+                                                "default": true
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "responses": {
+                    "200": {
+                        "description": "Claim version created successfully",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "type": "object",
+                                    "properties": {
+                                        "message": {
+                                            "type": "string"
+                                        },
+                                        "claim_id": {
+                                            "type": "string"
+                                        },
+                                        "version": {
+                                            "type": "string"
+                                        },
+                                        "claim_data": {
+                                            "type": "object",
+                                            "properties": {
+                                                "status": {
+                                                    "type": "string"
+                                                },
+                                                "version_summary": {
+                                                    "type": "object"
+                                                },
+                                                "claim_details": {
+                                                    "type": "object"
+                                                },
+                                                "vehicle_info": {
+                                                    "type": "object"
+                                                },
+                                                "documents": {
+                                                    "type": "object"
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

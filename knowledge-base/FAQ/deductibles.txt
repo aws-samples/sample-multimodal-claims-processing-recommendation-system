@@ -1,0 +1,32 @@
+Frequently Asked Questions:
+
+Q: How long do I have to file a claim?
+A: Claims must be filed within 30 days of the incident.
+
+
+Q: How is my claim amount calculated?
+A: Claim amounts are based on:
+   - Repair estimates from approved shops
+   - Coverage type limits
+   - Applicable deductibles
+
+
+Q: What's covered under basic coverage?
+A: Basic coverage includes:
+   - Accident damage
+   - Theft
+   - Maximum claim amount: $25,000
+
+Q: What's the difference between coverage types?
+A: Coverage varies by type:
+   - Basic: Accidents and theft
+   - Premium: Adds natural disasters
+   - Minimum: Only accident damage
+
+
+Q: What if I don't have all required documents?
+A: Contact support immediately. Some documents
+   may be submitted within 48 hours of initial claim.
+
+Q: Can I submit additional documents later?
+A: Yes, within 48 hours of initial claim submission.

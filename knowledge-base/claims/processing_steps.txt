@@ -1,0 +1,20 @@
+Claim Processing Steps:
+
+1. Initial Validation:
+   - Verify policy number format and status
+   - Check incident date is within 30 days
+   - Confirm all required fields present
+
+2. Coverage Verification:
+   - Check policy type
+   - Verify claim amount within limits
+   - Apply appropriate deductible
+
+3. Documentation Check:
+   - Check claim form for initial understanding of situation
+   - Validate additional documents based on claim type (accident, theft)
+
+4. Final Processing:
+   - Calculate coverage amount
+   - Apply deductible
+   - Generate claim summary

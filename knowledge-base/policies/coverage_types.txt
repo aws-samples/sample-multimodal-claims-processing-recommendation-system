@@ -1,0 +1,16 @@
+Auto Insurance Coverage Types:
+
+1. Basic Coverage:
+   - Deductible: $500
+   - Maximum claim: $25,000
+   - Covers: Basic accidents, theft
+   
+2. Premium Coverage:
+   - Deductible: $250
+   - Maximum claim: $50,000
+   - Covers: All basic plus natural disasters
+
+3. Minimum Coverage:
+   - Deductible: $1,000
+   - Maximum claim: $15,000
+   - Covers: Only accident damage

@@ -1,0 +1,19 @@
+Claim Validation Rules:
+
+1. Required Information:
+   - Policy number (AUTO-XXXX-XXXX)
+   - Date of incident
+   - Vehicle details (make, model, year)
+   - Damage description
+   - Required documents based on claim type
+
+2. Claim Limits:
+   - Minimum claim amount: $100
+   - Maximum depends on coverage type
+   - Must be filed within 30 days
+
+3. Vehicle Information Required:
+   - Vehicle Make
+   - Vehicle Model
+   - Year
+   - VIN Number

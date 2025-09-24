@@ -1,0 +1,28 @@
+CLAIM TYPE IDENTIFICATION GUIDELINES
+
+1. Accident Claims - Key Indicators:
+   - Mention of collision or crash
+   - Description of vehicle damage
+   - Other vehicles involved
+   - Police report with accident details
+   - Repair estimates for damage
+   - Photos showing vehicle damage
+
+2. Theft Claims - Key Indicators:
+   - Vehicle reported stolen
+   - Last known location
+   - Time vehicle discovered missing
+   - Forced entry evidence
+   - Police report with theft details
+   - Personal items stolen from vehicle
+
+REQUIRED DOCUMENTS BY CLAIM TYPE:
+- ACCIDENT: claim form, police report, repair estimate, damage photos
+- THEFT: claim form, police report
+
+DOCUMENT TYPE IDENTIFICATION:
+- claim form: filenames containing "claim", "sample", "form", "initial"
+- police report: filenames containing "police", "report", "incident"  
+- repair estimate: filenames containing "repair", "estimate", "mechanic", "quote"
+- damage photos: image files (.jpg, .png, .jpeg) or filenames with "photo", "image"
+
