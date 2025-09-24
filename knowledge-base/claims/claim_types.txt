@@ -16,13 +16,9 @@ CLAIM TYPE IDENTIFICATION GUIDELINES
    - Police report with theft details
    - Personal items stolen from vehicle
 
-REQUIRED DOCUMENTS BY CLAIM TYPE:
-- ACCIDENT: claim form, police report, repair estimate, damage photos
-- THEFT: claim form, police report
-
-DOCUMENT TYPE IDENTIFICATION:
-- claim form: filenames containing "claim", "sample", "form", "initial"
-- police report: filenames containing "police", "report", "incident"  
-- repair estimate: filenames containing "repair", "estimate", "mechanic", "quote"
-- damage photos: image files (.jpg, .png, .jpeg) or filenames with "photo", "image"
+General Hints:
+- If damage photos are present, likely an accident claim
+- If police report mentions theft, stolen, or missing vehicle, likely a theft claim
+- Repair estimates indicate accident claim
+- Missing vehicle reports indicate theft claim
 

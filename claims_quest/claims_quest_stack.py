@@ -188,26 +188,17 @@ class ClaimsQuestStack(Stack):
         claims_table.grant_read_data(get_claim_function)
         
         
-        # Creating agent IAM role
+        # Creating agent IAM role with managed Bedrock policy
         agent_role = iam.Role(
             self, 
             "BedrockAgentRole",
             assumed_by=iam.ServicePrincipal("bedrock.amazonaws.com"),
+            managed_policies=[
+                iam.ManagedPolicy.from_aws_managed_policy_name("AmazonBedrockFullAccess")
+            ],
             inline_policies={
                 "AgentPolicy": iam.PolicyDocument(
                     statements=[
-                        # Bedrock Foundation Model access
-                        iam.PolicyStatement(
-                            effect=iam.Effect.ALLOW,
-                            actions=[
-                                "bedrock:GetFoundationModel",
-                                "bedrock:InvokeModel*"
-                            ],
-                            resources=[
-                                f"arn:aws:bedrock:{self.region}::foundation-model/amazon.nova-pro-v1:0",
-                                f"arn:aws:bedrock:{self.region}::foundation-model/amazon.nova-lite-v1:0"
-                            ]
-                        ),
                         # Knowledge Base access
                         iam.PolicyStatement(
                             effect=iam.Effect.ALLOW,
@@ -231,6 +222,7 @@ class ClaimsQuestStack(Stack):
                                 f"{claims_bucket.bucket_arn}/*"
                             ]
                         ),
+                        # Lambda access
                         iam.PolicyStatement(
                             effect=iam.Effect.ALLOW,
                             actions=["lambda:InvokeFunction"],
@@ -241,7 +233,6 @@ class ClaimsQuestStack(Stack):
                                 get_claim_function.function_arn 
                                 ]
                         )
-
                     ]
                 )
             }
@@ -282,11 +273,11 @@ class ClaimsQuestStack(Stack):
             api_schema=bedrock.ApiSchema.from_local_asset("action_groups/get_claim/schema.json")
         )
         
-        # 6 - Create Bedrock Agent with nova pro
+        # 6 - Create Bedrock Agent
         claims_agent = bedrock.Agent(
         self,
         "ClaimsProcessingAgent",
-        foundation_model=bedrock.BedrockFoundationModel.AMAZON_NOVA_PRO_V1,
+        foundation_model=bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
         instruction="""You are an auto insurance claims processing assistant. 
 
         Query the knowledge base for policy validation and coverage details.
@@ -309,7 +300,7 @@ class ClaimsQuestStack(Stack):
         agent_alias_test3 = bedrock.AgentAlias(self, 'agentaliastest3',
         alias_name='myalias3',
         agent = claims_agent,
-        description='Nova Pro - throttle'
+        description='Working end-to-end!! - back to original'
     )
 
 
@@ -352,8 +343,6 @@ class ClaimsQuestStack(Stack):
                 resources=["*"]
             )
         )
-        
-
         
 
         
@@ -412,7 +401,5 @@ class ClaimsQuestStack(Stack):
             value=claims_bucket.bucket_arn,
             description="ARN of the claims bucket"
         )
-        
-
         
     

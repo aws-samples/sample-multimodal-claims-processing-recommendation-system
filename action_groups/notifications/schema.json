@@ -6,7 +6,7 @@
         "description": "API for sending notifications"
     },
     "paths": {
-        "/sendNotification": {
+        "/send-notification": {
             "post": {
                 "summary": "Send a notification",
                 "operationId": "sendNotification",
