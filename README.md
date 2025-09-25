@@ -2,7 +2,7 @@
 
 An AI-powered, serverless insurance claims processing system built with AWS CDK, Amazon Bedrock Agent, and Claude 3.7 Sonnet. This system automatically processes claim documents and images, validates policies, and makes intelligent approval decisions.
 
-## 🚀 Features
+## Features
 
 ### **Intelligent Document Processing**
 - **Multi-format Support**: Processes PDFs, images (PNG, JPG, JPEG, GIF)
@@ -22,7 +22,7 @@ An AI-powered, serverless insurance claims processing system built with AWS CDK,
 - **Robust Parsing**: Handles malformed JSON from AI agents
 - **Real-time Notifications**: Email alerts via SNS
 
-## 🏗️ Architecture
+## Architecture
 
 ```
 S3 Upload → Lambda Trigger → Bedrock Agent → Action Groups → DynamoDB + SNS
@@ -39,7 +39,7 @@ S3 Upload → Lambda Trigger → Bedrock Agent → Action Groups → DynamoDB + 
 - **SNS**: Email notifications
 - **Knowledge Base**: Policy validation and business rules
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 quest-2-intelligent-claims-processing/
@@ -66,7 +66,7 @@ quest-2-intelligent-claims-processing/
 └── README.md
 ```
 
-## 🛠️ Setup & Deployment
+## Setup & Deployment
 
 ### **Prerequisites**
 - AWS CLI configured
@@ -123,7 +123,7 @@ Or add it to `cdk.json`:
 }
 ```
 
-## 📋 Usage
+## Usage
 
 ### **Processing Claims**
 
@@ -159,7 +159,7 @@ The `sample-claims/` folder contains sample documents for testing the end-to-end
 3. Check DynamoDB for processed claim records
 4. Verify notifications are sent via SNS
 
-## 🧠 AI Capabilities
+## AI Capabilities
 
 ### **Document Analysis**
 - **Text Extraction**: Policy numbers, dates, customer information
@@ -177,7 +177,7 @@ The `sample-claims/` folder contains sample documents for testing the end-to-end
 - **Coverage Lookup**: Deductibles, coverage types, limits
 - **Business Rules**: Automated compliance checking
 
-## 📊 Data Structure
+## Data Structure
 
 ### **Claim Record Example**
 ```json
