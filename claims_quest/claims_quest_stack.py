@@ -85,14 +85,16 @@ class ClaimsQuestStack(Stack):
             display_name="Claims Processing Notifications"
         )
         
-        # Email subscription
-        subscription = sns.Subscription(
-            self, 
-            "EmailSubscription",
-            topic=claims_topic,  # Topic parameter IS required here
-            protocol=sns.SubscriptionProtocol.EMAIL,
-            endpoint="tirharsh@amazon.com"
-        )
+        # Email subscription - configurable via CDK context
+        notification_email = self.node.try_get_context("notification_email")
+        if notification_email:
+            subscription = sns.Subscription(
+                self, 
+                "EmailSubscription",
+                topic=claims_topic,
+                protocol=sns.SubscriptionProtocol.EMAIL,
+                endpoint=notification_email
+            )
 
 
         # 5 - Creating Knowledge base

@@ -25,3 +25,6 @@ Thumbs.db
 
 # Dependencies
 node_modules/
+
+# Personal configs
+:USERPROFILE.sshconfig

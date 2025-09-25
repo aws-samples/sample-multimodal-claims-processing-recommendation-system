@@ -46,6 +46,33 @@ At this point you can now synthesize the CloudFormation template for this code.
 $ cdk synth
 ```
 
+## Configuration
+
+To receive email notifications, set your email address using CDK context:
+
+```
+$ cdk deploy -c notification_email=your-email@example.com
+```
+
+Or add it to `cdk.json`:
+
+```json
+{
+  "context": {
+    "notification_email": "your-email@example.com"
+  }
+}
+```
+
+## Testing
+
+The `sample-claims/` folder contains sample documents for testing the end-to-end claims processing workflow. After deploying the stack, you can:
+
+1. Upload documents from `sample-claims/` to the claims S3 bucket one at a time
+2. Monitor the processing through CloudWatch logs
+3. Check DynamoDB for processed claim records
+4. Verify notifications are sent via SNS
+
 ## Useful commands
 
  * `cdk ls`          list all stacks in the app
