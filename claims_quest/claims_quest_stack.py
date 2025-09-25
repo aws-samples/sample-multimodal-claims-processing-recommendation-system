@@ -22,7 +22,7 @@ class ClaimsQuestStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
-        # 1 - Creating an S3 bucket for storing claim documents
+    # 1 - Creating an S3 bucket for storing claim documents
         claims_bucket = s3.Bucket(
             self, 
             "ClaimsBucket",
@@ -31,7 +31,7 @@ class ClaimsQuestStack(Stack):
             auto_delete_objects=True,
         )
         
-        # 2 - S3 bucket for knowledge base
+    # 2 - S3 bucket for knowledge base
         knowledge_base_bucket = s3.Bucket(
             self,
             "KnowledgeBaseBucket",
@@ -48,7 +48,7 @@ class ClaimsQuestStack(Stack):
             destination_bucket=knowledge_base_bucket,
         )
         
-        # 3 - Creating a DynamoDB table for storing claim details
+    # 3 - Creating a DynamoDB table for storing claim details
         claims_table = dynamo.Table(
             self,
             "ClaimsTable",
@@ -78,7 +78,7 @@ class ClaimsQuestStack(Stack):
             projection_type=dynamo.ProjectionType.ALL
         )
         
-        # 4 - SNS Topic for notifications
+    # 4 - SNS Topic for notifications
         claims_topic = sns.Topic(
             self,
             "ClaimsTopic",
@@ -95,7 +95,7 @@ class ClaimsQuestStack(Stack):
         )
 
 
-        # 5 - Creating Knowledge base
+    # 5 - Creating Knowledge base
         claims_kb = bedrock.VectorKnowledgeBase(
             self, 
             'ClaimsKnowledgeBase',
@@ -116,7 +116,7 @@ class ClaimsQuestStack(Stack):
         # lambda function for action group - creating claims 
         claims_action_function = _lambda.Function(
             self,
-            "ClaimsActionFunction",
+            "ClaimsManagementFunction",
             runtime=_lambda.Runtime.PYTHON_3_13,
             handler="claims_actions.handler",
             code=_lambda.Code.from_asset("lambda"),
@@ -133,7 +133,7 @@ class ClaimsQuestStack(Stack):
         # lambda function for action group - image analysis
         image_analysis_function = _lambda.Function(
             self,
-            "ImageAnalysisFunction",
+            "DamageAssessmentFunction",
             runtime=_lambda.Runtime.PYTHON_3_13,
             handler="image_analysis.handler",
             code=_lambda.Code.from_asset("lambda"),
@@ -158,7 +158,7 @@ class ClaimsQuestStack(Stack):
         # lambda function for action group - sending notifications
         notification_function = _lambda.Function(
             self,
-            "NotificationFunction",
+            "CustomerNotificationFunction",
             runtime=_lambda.Runtime.PYTHON_3_13,
             handler="send_notifications.handler",
             code=_lambda.Code.from_asset("lambda"),
@@ -174,7 +174,7 @@ class ClaimsQuestStack(Stack):
         # Create Lambda function for get-claim action group
         get_claim_function = _lambda.Function(
             self,
-            "GetClaimFunction",
+            "ClaimRetrievalFunction",
             runtime=_lambda.Runtime.PYTHON_3_13,
             handler="get_claim.handler",
             code=_lambda.Code.from_asset("lambda"),
@@ -238,42 +238,52 @@ class ClaimsQuestStack(Stack):
             }
         )
         
-        # Simple action group to create dynamo entry 
+        # Action group to create dynamo entry 
+        # Purpose: Creates/updates versioned claim records in DynamoDB with smart data merging
+        # Handles: Policy validation, document tracking, status updates, business rule enforcement
         claims_action_group = bedrock.AgentActionGroup(
-            name="Claims_management",
+            name="ClaimsManagement",
             description="Action group for managing claims in DynamoDB",
             executor= bedrock.ActionGroupExecutor.fromlambda_function(claims_action_function),
             enabled=True,
             api_schema=bedrock.ApiSchema.from_local_asset("action_groups/create_claims/schema.json")
         )
         
-        # Simple action group to analyze images
+        # Action group to analyze images
+        # Purpose: AI-powered vehicle damage assessment using Claude 3.7 Sonnet
+        # Handles: Damage severity classification, cost estimation, affected area identification
         image_analysis_action_group = bedrock.AgentActionGroup(
-            name="Image_analysis",
+            name="DamageAssessment",
             description="Analyze vehicle damage images",
             executor= bedrock.ActionGroupExecutor.fromlambda_function(image_analysis_function),
             enabled=True,
             api_schema=bedrock.ApiSchema.from_local_asset("action_groups/image_analysis/schema.json")
         )
         
-        # Simple action group to send notifications
+        # Action group to send notifications
+        # Purpose: Sends email notifications via SNS for claim status updates
+        # Handles: Customer communication, status alerts, next steps guidance
         notification_action_group = bedrock.AgentActionGroup(
-            name="Send_notification",
+            name="CustomerNotification",
             description="Send notifications about claim updates",
             executor= bedrock.ActionGroupExecutor.fromlambda_function(notification_function),
             enabled=True,
             api_schema=bedrock.ApiSchema.from_local_asset("action_groups/notifications/schema.json")
         )
         
+        # Action group to retrieve claim history
+        # Purpose: Retrieves existing claim data with complete version history
+        # Handles: Claim lookup, version tracking, historical data access for context
         get_claim_action_group = bedrock.AgentActionGroup(
-            name="Get_claim",
+            name="ClaimRetrieval",
             description="Get claim details",
             executor= bedrock.ActionGroupExecutor.fromlambda_function(get_claim_function),
             enabled=True,
             api_schema=bedrock.ApiSchema.from_local_asset("action_groups/get_claim/schema.json")
         )
         
-        # 6 - Create Bedrock Agent
+        
+    # 6 - Create Bedrock Agent
 
         # Cross-region inference profile
         cris = bedrock.CrossRegionInferenceProfile.from_config(
@@ -304,17 +314,19 @@ class ClaimsQuestStack(Stack):
         claims_agent.add_action_group(notification_action_group)
         claims_agent.add_action_group(get_claim_action_group)
    
-        agent_alias_test3 = bedrock.AgentAlias(self, 'agentaliastest3',
-        alias_name='myalias3',
-        agent = claims_agent,
-        description=' claude 3.7-'
-    )
+        claims_agent_alias = bedrock.AgentAlias(
+            self, 
+            'ClaimsProcessingAlias',
+            alias_name='production',
+            agent=claims_agent,
+            description='Production alias for claims processing agent'
+        )
 
 
         # 7 - Lambda function
         processing_function = _lambda.Function(
             self,
-            "ProcessingFunction",
+            "EventProcessorFunction",
             runtime=_lambda.Runtime.PYTHON_3_13,
             handler="index.handler",
             code=_lambda.Code.from_asset("lambda"),
@@ -328,7 +340,7 @@ class ClaimsQuestStack(Stack):
                 "KNOWLEDGE_BASE_ID": claims_kb.knowledge_base_id,
                 "REGION": self.region,
                 "BEDROCK_AGENT_ID": claims_agent.agent_id,
-                "AGENT_ALIAS_ID": agent_alias_test3.alias_id
+                "AGENT_ALIAS_ID": claims_agent_alias.alias_id
             },
         )
     
@@ -393,7 +405,7 @@ class ClaimsQuestStack(Stack):
         
         CfnOutput(
             self, "AgentAliasId",
-            value=agent_alias_test3.alias_id,
+            value=claims_agent_alias.alias_id,
             description="ID of the Bedrock agent alias"
         )
         

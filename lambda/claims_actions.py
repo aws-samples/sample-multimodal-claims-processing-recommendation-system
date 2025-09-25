@@ -4,6 +4,18 @@ import os
 from datetime import datetime
 from decimal import Decimal
 
+"""
+CLAIMS MANAGEMENT ACTION GROUP
+=============================
+Purpose: Creates and updates versioned claim records in DynamoDB
+Key Features:
+- Parses malformed JSON from Bedrock Agent (key=value format)
+- Smart data merging: preserves static fields, updates dynamic fields
+- Maintains complete audit trail with versioning
+- Handles policy validation and business rule enforcement
+"""
+
+
 def decimal_default(obj):
     if isinstance(obj, Decimal):
         return float(obj)

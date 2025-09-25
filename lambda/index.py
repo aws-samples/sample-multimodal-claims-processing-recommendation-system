@@ -5,6 +5,17 @@ from datetime import datetime
 from botocore.config import Config
 import time
 
+"""
+MAIN PROCESSING LAMBDA - S3 Event Handler
+=========================================
+Purpose: Orchestrates the entire claims processing workflow
+Triggers: S3 file uploads (documents and images)
+Actions: 
+- Differentiates between images and documents
+- Invokes Bedrock Agent with structured prompts
+- Handles retry logic and error recovery
+- Coordinates all action groups for complete claim processing
+"""
 
 
 def is_image_file(filename):
@@ -149,6 +160,7 @@ def handler(event, context):
             Create claim ONCE with createClaim operation:
             - Only include fields found in document. Do not include null/empty information in the table if not present!
             Everything must be in proper JSON format!
+            
 
             {{
                 "claim_id": "[extracted from document]",

@@ -4,6 +4,18 @@ import base64
 import os
 from datetime import datetime 
 
+"""
+IMAGE ANALYSIS ACTION GROUP
+==========================
+Purpose: AI-powered vehicle damage assessment using Claude 3.7 Sonnet
+Key Features:
+- Analyzes damage photos for severity and affected areas
+- Provides repair cost estimates from visual assessment
+- Extracts claim IDs and vehicle information from images
+- Returns structured damage analysis for claim processing
+"""
+
+
 def extract_properties(event):
     """Extract and parse properties based on their declared types"""
     try:
