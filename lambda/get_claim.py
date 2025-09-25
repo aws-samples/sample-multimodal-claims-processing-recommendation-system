@@ -3,6 +3,18 @@ import boto3
 import os
 from decimal import Decimal
 
+"""
+CLAIM RETRIEVAL ACTION GROUP
+===========================
+Purpose: Retrieves existing claim data with complete version history
+Key Features:
+- Fetches latest claim version for processing context
+- Provides historical data for informed decision making
+- Supports claim existence validation
+- Returns structured claim data for agent processing
+"""
+
+
 def decimal_default(obj):
     if isinstance(obj, Decimal):
         return float(obj)

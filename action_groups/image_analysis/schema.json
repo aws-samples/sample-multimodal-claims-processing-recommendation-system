@@ -6,7 +6,7 @@
         "description": "Analyze vehicle damage images using Claude 3"
     },
     "paths": {
-        "/analyzeImage": {
+        "/analyze-image": {
             "post": {
                 "summary": "Analyze vehicle damage from image",
                 "operationId": "analyzeImage",

@@ -4,6 +4,18 @@ import base64
 import os
 from datetime import datetime 
 
+"""
+IMAGE ANALYSIS ACTION GROUP
+==========================
+Purpose: AI-powered vehicle damage assessment using Claude 3.7 Sonnet
+Key Features:
+- Analyzes damage photos for severity and affected areas
+- Provides repair cost estimates from visual assessment
+- Extracts claim IDs and vehicle information from images
+- Returns structured damage analysis for claim processing
+"""
+
+
 def extract_properties(event):
     """Extract and parse properties based on their declared types"""
     try:
@@ -51,7 +63,7 @@ def extract_properties(event):
 
 def handler(event, context):
     """
-    Lambda function to analyze images using Nova Pro 
+    Lambda function to analyze images using claud sonnet 3 model
     """
     
     print("=== IMAGE_ANALYSIS ACTION GROUP START ===")
@@ -80,24 +92,12 @@ def handler(event, context):
         s3 = boto3.client('s3')
         
         print(f"Getting image from bucket: {CLAIMS_BUCKET}, key: {key}")
-        try:
-            image_response = s3.get_object(
-                Bucket=CLAIMS_BUCKET,
-                Key=key
-            )
-            image_content = image_response['Body'].read()
-            print(f"Image size: {len(image_content)} bytes")
-            
-            # Check if image is too large (Nova Pro has limits)
-            if len(image_content) > 5 * 1024 * 1024:  # 5MB limit
-                raise ValueError(f"Image too large: {len(image_content)} bytes. Max 5MB.")
-            
-            image_base64 = base64.b64encode(image_content).decode('utf-8')
-            print(f"Base64 encoded image length: {len(image_base64)}")
-            
-        except Exception as s3_error:
-            print(f"S3 error: {str(s3_error)}")
-            raise
+        image_response = s3.get_object(
+            Bucket=CLAIMS_BUCKET,
+            Key=key
+        )
+        image_content = image_response['Body'].read()
+        image_base64 = base64.b64encode(image_content).decode('utf-8')
         
         # Calling claud sonnet 3 model
         bedrock = boto3.client('bedrock-runtime')
@@ -119,69 +119,40 @@ def handler(event, context):
         - claim ID
         """
         
-        # Determine image format from filename
-        image_format = "jpeg"  # default
-        if key.lower().endswith('.png'):
-            image_format = "png"
-        elif key.lower().endswith('.gif'):
-            image_format = "gif"
-        elif key.lower().endswith(('.webp', '.bmp')):
-            image_format = "jpeg"  # Convert to jpeg for compatibility
-        
-        print(f"Using image format: {image_format}")
-        
-        # Nova Pro format - minimal parameters to avoid validation errors
-        request_body = {
-            "messages": [
-                {
-                    "role": "user",
-                    "content": [
-                        {
-                            "image": {
-                                "format": image_format,
-                                "source": {
-                                    "bytes": image_base64
+        response = bedrock.invoke_model(
+            modelId='us.anthropic.claude-3-7-sonnet-20250219-v1:0',
+            contentType='application/json',
+            accept='application/json',
+            body=json.dumps({
+                'messages': [
+                    {
+                        'role': 'user',
+                        'content': [
+                            {
+                                'type': 'image',
+                                'source': {
+                                    'type': 'base64',
+                                    'media_type': 'image/png',
+                                    'data': image_base64
                                 }
+                            },
+                            {
+                                'type': 'text',
+                                'text': prompt
                             }
-                        },
-                        {
-                            "text": prompt
-                        }
-                    ]
-                }
-            ]
-        }
+                        ]
+                    }
+                ],
+                'anthropic_version': 'bedrock-2023-05-31',
+                'max_tokens': 1000,
+                'temperature': 0,
+                'top_k': 250,
+                'top_p': 1
+            })
+        )
         
-        print(f"Sending request to Nova Pro with image format: {image_format}")
-        
-        try:
-            response = bedrock.invoke_model(
-                modelId='amazon.nova-pro-v1:0',
-                body=json.dumps(request_body)
-            )
-            
-            nova_response = json.loads(response['body'].read())
-            print(f"Nova response structure: {list(nova_response.keys())}")
-            print(f"Full Nova response: {json.dumps(nova_response, indent=2)}")
-            
-            # Handle different possible response structures
-            if 'output' in nova_response and 'message' in nova_response['output']:
-                analysis_results = nova_response['output']['message']['content'][0]['text']
-            elif 'content' in nova_response:
-                analysis_results = nova_response['content'][0]['text']
-            elif 'completion' in nova_response:
-                analysis_results = nova_response['completion']
-            elif 'outputText' in nova_response:
-                analysis_results = nova_response['outputText']
-            else:
-                # Fallback - try to find text in the response
-                print(f"Unknown response structure, using full response: {nova_response}")
-                analysis_results = str(nova_response)
-                
-        except Exception as bedrock_error:
-            print(f"Bedrock error: {str(bedrock_error)}")
-            print(f"Request body was: {json.dumps(request_body, indent=2)}")
-            raise
+        claude_response = json.loads(response['body'].read())
+        analysis_results = claude_response['content'][0]['text']
         print(analysis_results)
         
         response_body = {

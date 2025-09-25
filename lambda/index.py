@@ -5,6 +5,17 @@ from datetime import datetime
 from botocore.config import Config
 import time
 
+"""
+MAIN PROCESSING LAMBDA - S3 Event Handler
+=========================================
+Purpose: Orchestrates the entire claims processing workflow
+Triggers: S3 file uploads (documents and images)
+Actions: 
+- Differentiates between images and documents
+- Invokes Bedrock Agent with structured prompts
+- Handles retry logic and error recovery
+- Coordinates all action groups for complete claim processing
+"""
 
 
 def is_image_file(filename):
@@ -64,38 +75,38 @@ def handler(event, context):
             - ALWAYS Use getClaimById operation to check for existing claims
                 - If exists: review history of the claim and the uploaded documents. Understand the status of the claim
             - Note current status
-            - Make sure to include a summary in the document_analysis 
-                - Ex.("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines."
-)
+            - Make sure to include a summary in the document_analysis
+                - Ex.("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines." )
 
             CLAIM PROCESSING
             ---------------
             Create claim ONCE with createClaim operation:
-            Use information from image analysis action to perform the action.
-            
+            CRITICAL: Extract the specific fields from the analyzeImage results and populate them in claim_details.
+            Everything must be in proper JSON format!
+
             {{
-                "claim_id": "[if visible in image]",
+                "claim_id": "[extract claim_id from image analysis results]",
                 "claim_details": {{
-                    "damage_description": "[visible damage details]",
-                    "damage_severity": "[minor/moderate/severe]",
-                    "affected_areas": "[damage locations]",
-                    "estimated_cost_from_image": [if estimatable]
+                    "damage_description": "[extract damage_description from image analysis results]",
+                    "damage_severity": "[extract severity from image analysis results as minor/moderate/severe]",
+                    "affected_areas": ["[extract affected_areas from image analysis results]"],
+                    "estimated_cost_from_image": "[extract estimated_cost from image analysis results]"
                 }},
                 "vehicle_info": {{
                     "make": "[if visible]",
                     "model": "[if visible]",
-                    "year": [if visible]
+                    "year": "[if visible]"
                 }},
                 "documents": {{
-                    "current_uploaded_documents": [list all uploaded files including "{key}"],
-                    "required_documents": [from KB, ALL the required documents needed based on claim type]
+                    "current_uploaded_documents": ["[list ALL uploaded files including {key}]"],
+                    "required_documents": ["[from KB based on claim type]"]
                 }},
                 "version_summary": {{
                     "claim_status": "PENDING",
-                    "document_analysis": "Detailed narrative of visible damage, vehicles, in paragraph form ",
+                    "document_analysis": "Detailed narrative of visible damage, vehicles, in paragraph form",
                     "document_uploaded": "{key}",
                     "next_steps": "the customer actions that are needed (what remaining docs)",
-                    "remaining_requirements": [outstanding documents]
+                    "remaining_requirements": ["[doc1]", "[doc2]"]
                 }}
             }}
 
@@ -134,61 +145,56 @@ def handler(event, context):
             - Vehicle details (make/model/year/VIN)
             - Incident date and location
             - Total repair cost
-            
+
             VALIDATION CHECKS
             ----------------
             1. Query knowledge base for policy status and coverage details if policy number is present in '{file_name}'
             2. Calculate days between incident_date and {today_date} (must be within 30 days)
             3. ALWAYS Use getClaimById operation to check for existing claims
                 - If exists: review history of the claim and the uploaded documents. Understand the status of the claim
-            5. Make sure to include a summary of what was found in the '{file_name}' in the document_analysis 
-                - Here is an example: ("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines.")
-)
-           
-            
+            4. Make sure to include a summary of what was found in the '{file_name}' in the document_analysis
+                - Here is an example: ("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines.") )
+
             CLAIM PROCESSING
             ---------------
             Create claim ONCE with createClaim operation:
-            CRITICAL: Only include fields found in document. Do not include null/empty information in the table if not present!
+            - Only include fields found in document. Do not include null/empty information in the table if not present!
+            Everything must be in proper JSON format!
             
-            FORMATTING RULES:
-            - Use proper array format: [item1, item2, item3] (with commas between items)
-            - Keep string values intact (don't split on commas within values)
-            - Use quotes for string values in arrays
-            
+
             {{
                 "claim_id": "[extracted from document]",
                 "claim_details": {{
                     "policy_number": "[if present]",
-                    "customer_id": "[if present]", 
+                    "customer_id": "[if present]",
                     "incident_date": "[if present]",
                     "incident_location": "[if present]",
                     "total_repair_cost": "[if present]",
-                    "active_policy": [true/false from KB],
-                    "reported_within_thirty_days": [calculated],
+                    "active_policy": "[true/false from KB]",
+                    "reported_within_thirty_days": "[calculated true/false]",
                     "claim_type": "[accident/theft]",
                     "coverage_type": "[from KB]",
                     "deductible": "[from KB]"
                 }},
                 "vehicle_info": {{
                     "make": "[if present]",
-                    "model": "[if present]", 
+                    "model": "[if present]",
                     "year": "[if present]",
                     "vin": "[if present]"
                 }},
                 "documents": {{
-                    "current_uploaded_documents": ["{file_name}"],
-                    "required_documents": [from KB, all the required docs needed based on the claim type]
+                    "current_uploaded_documents": ["[list ALL uploaded files including {file_name}]"],
+                    "required_documents": ["[from KB based on claim type]"]
                 }},
                 "version_summary": {{
                     "claim_status": "[APPROVED/PENDING/DENIED]",
-                    "document_analysis": "[Comprehensive narrative of document contents and incident details and claim status in paragraph form]",
+                    "document_analysis": "[Thorough summary of findings, description of incident, overview of claim status]",
                     "document_uploaded": "{file_name}",
                     "next_steps": "[the customer actions that are needed, the remaining docs needed]",
-                    "remaining_requirements": [outstanding documents]
+                    "remaining_requirements": ["[doc1]", "[doc2]"]
                 }}
             }}
-            
+
             NOTIFICATION
             -----------
             Use sendNotification operation with status and next steps.
@@ -203,9 +209,8 @@ def handler(event, context):
         print("Starting agent invocation with timeout and retry configuration")
         print(f"DEBUG - Image file? {is_image_file(key)}")
         
-        max_retries = 2  # Reduced since Nova Pro has higher quotas
-        base_delay = 5  # Reduced base delay
-        max_delay = 60   # Reduced max delay (1 minute)
+        max_retries = 2
+        retry_delay = 5  # seconds
         response_text = ""
         
         for retry_attempt in range(max_retries):
@@ -232,35 +237,16 @@ def handler(event, context):
                 break
                 
             except Exception as e:
-                error_str = str(e)
-                print(f"Error on attempt {retry_attempt + 1}/{max_retries}: {error_str}")
-                
-                # Check if it's a throttling error
-                is_throttling = any(keyword in error_str.lower() for keyword in 
-                                  ['throttling', 'rate exceeded', 'too many requests', 'service unavailable'])
-                
+                print(f"Error on attempt {retry_attempt + 1}/{max_retries}: {str(e)}")
                 if retry_attempt < max_retries - 1:
-                    if is_throttling:
-                        # Throttling-specific delays: longer waits to respect quota limits
-                        if retry_attempt == 0:
-                            total_delay = 30  # First throttling retry: 30 seconds
-                        else:
-                            total_delay = 60  # Second throttling retry: 60 seconds
-                        print(f"Throttling detected. Retrying in {total_delay} seconds to respect quota limits...")
-                    else:
-                        # Non-throttling errors: fast exponential backoff
-                        delay = min(base_delay * (2 ** retry_attempt), max_delay)
-                        # Add jitter (random component) to avoid thundering herd
-                        import random
-                        jitter = random.uniform(0.1, 0.3) * delay
-                        total_delay = delay + jitter
-                        print(f"Non-throttling error. Retrying in {total_delay:.2f} seconds...")
-                    
-                    time.sleep(total_delay)
+                    print(f"Retrying in {retry_delay} seconds...")
+                    time.sleep(retry_delay)
+                    # Increase delay for next retry (exponential backoff)
+                    retry_delay *= 2
                 else:
                     # Last attempt failed
                     print("All retry attempts failed")
-                    response_text = f"Error after {max_retries} attempts: {error_str}"
+                    response_text = f"Error after {max_retries} attempts: {str(e)}"
         
         print("Agent Response Text:", response_text)
         

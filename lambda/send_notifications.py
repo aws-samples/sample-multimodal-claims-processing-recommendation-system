@@ -3,6 +3,18 @@ import json
 import boto3
 import os
 
+"""
+NOTIFICATION ACTION GROUP
+========================
+Purpose: Sends email notifications via SNS for claim status updates
+Key Features:
+- Customer communication for claim updates
+- Status alerts and next steps guidance
+- Automated email delivery through SNS
+- Customizable subject and message content
+"""
+
+
 def extract_properties(event):
     """Extract properties from the event structure"""
     try:
