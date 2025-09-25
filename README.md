@@ -24,15 +24,11 @@ An AI-powered, serverless insurance claims processing system built with AWS CDK,
 
 ## Architecture
 
-```
-S3 Upload → Lambda Trigger → Bedrock Agent → Action Groups → DynamoDB + SNS
-                                    ↓
-                            Knowledge Base (Vector Search)
-```
+![](./assets/multimodal-claims-processing-architecture.png "Architecture Diagram")
 
 ### **Core Components**
 - **AWS CDK**: Infrastructure as Code
-- **Amazon Bedrock**: AI Agent orchestration with Claude 3.7 Sonnet
+- **Amazon Bedrock**: AI Agent orchestration with Anthropic Claude 3.7 Sonnet
 - **S3**: Document storage and knowledge base content
 - **DynamoDB**: Versioned claim data storage
 - **Lambda**: Processing logic and action groups
@@ -42,9 +38,9 @@ S3 Upload → Lambda Trigger → Bedrock Agent → Action Groups → DynamoDB + 
 ## Project Structure
 
 ```
-quest-2-intelligent-claims-processing/
-├── claims_quest/
-│   └── claims_quest_stack.py          # CDK infrastructure
+multimodal-agentic-claims-processing/
+├── claims_processing/
+│   └── claims_processing_stack.py          # CDK infrastructure
 ├── lambda/
 │   ├── index.py                       # Main processing function
 │   ├── claims_actions.py              # Claim management action group
@@ -78,7 +74,7 @@ quest-2-intelligent-claims-processing/
 ```bash
 # Clone repository
 git clone <repository-url>
-cd quest-2-intelligent-claims-processing
+cd multimodal-agentic-claims-processing
 
 # Create virtual environment
 python3 -m venv .venv

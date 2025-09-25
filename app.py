@@ -3,11 +3,11 @@ import os
 
 import aws_cdk as cdk
 
-from claims_quest.claims_quest_stack import ClaimsQuestStack
+from claims_processing.claims_processing_stack import ClaimsStack
 
 
 app = cdk.App()
-ClaimsQuestStack(app, "ClaimsQuestStack",
+ClaimsStack(app, "ClaimsStack",
     # If you don't specify 'env', this stack will be environment-agnostic.
     # Account/Region-dependent features and context lookups will not work,
     # but a single synthesized template can be deployed anywhere.
