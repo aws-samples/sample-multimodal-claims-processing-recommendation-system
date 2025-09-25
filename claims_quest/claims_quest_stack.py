@@ -274,10 +274,17 @@ class ClaimsQuestStack(Stack):
         )
         
         # 6 - Create Bedrock Agent
+
+        # Cross-region inference profile
+        cris = bedrock.CrossRegionInferenceProfile.from_config(
+            geo_region= bedrock.CrossRegionInferenceProfileRegion.US,
+            model= bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_3_7_SONNET_V1_0
+            )
+
         claims_agent = bedrock.Agent(
         self,
         "ClaimsProcessingAgent",
-        foundation_model=bedrock.BedrockFoundationModel.ANTHROPIC_CLAUDE_SONNET_V1_0,
+        foundation_model= cris,
         instruction="""You are an auto insurance claims processing assistant. 
 
         Query the knowledge base for policy validation and coverage details.
@@ -300,7 +307,7 @@ class ClaimsQuestStack(Stack):
         agent_alias_test3 = bedrock.AgentAlias(self, 'agentaliastest3',
         alias_name='myalias3',
         agent = claims_agent,
-        description='Working end-to-end!! - back to original'
+        description=' claude 3.7-'
     )
 
 

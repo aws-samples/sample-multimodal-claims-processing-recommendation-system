@@ -61,66 +61,48 @@ def handler(event, context):
             VALIDATIONS CHECK
             ----------------
             Existing Claim Check:
-            - ALWAYS Use getClaimById operation
-            - If exists: review history and uploaded documents
+            - ALWAYS Use getClaimById operation to check for existing claims
+                - If exists: review history of the claim and the uploaded documents. Understand the status of the claim
             - Note current status
+            - Make sure to include a summary in the document_analysis
+                - Ex.("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines." )
 
             CLAIM PROCESSING
             ---------------
             Create claim ONCE with createClaim operation:
-            *IMPORTANT: All JSON fields must be properly quoted strings or valid JSON objects/arrays.
+            CRITICAL: Extract the specific fields from the analyzeImage results and populate them in claim_details.
+            Everything must be in proper JSON format!
 
-            claim_id: [required]
-            claim_details: {{
-                "damage_description": [visible damage details],
-                "damage_severity": [minor/moderate/severe],
-                "affected_areas": [damage locations],
-                "estimated_cost_from_image": [if estimatable]
+            {{
+                "claim_id": "[extract claim_id from image analysis results]",
+                "claim_details": {{
+                    "damage_description": "[extract damage_description from image analysis results]",
+                    "damage_severity": "[extract severity from image analysis results as minor/moderate/severe]",
+                    "affected_areas": ["[extract affected_areas from image analysis results]"],
+                    "estimated_cost_from_image": "[extract estimated_cost from image analysis results]"
+                }},
+                "vehicle_info": {{
+                    "make": "[if visible]",
+                    "model": "[if visible]",
+                    "year": "[if visible]"
+                }},
+                "documents": {{
+                    "current_uploaded_documents": ["[list ALL uploaded files including {key}]"],
+                    "required_documents": ["[from KB based on claim type]"]
+                }},
+                "version_summary": {{
+                    "claim_status": "PENDING",
+                    "document_analysis": "Detailed narrative of visible damage, vehicles, in paragraph form",
+                    "document_uploaded": "{key}",
+                    "next_steps": "the customer actions that are needed (what remaining docs)",
+                    "remaining_requirements": ["[doc1]", "[doc2]"]
+                }}
             }}
 
-            documents: {{
-                "current_uploaded_documents": ["{key}"],
-                "required_documents": [based on claim type]
-            }}
-
-            version_summary: {{
-                "claim_status": [based on ALL documents],
-                "document_analysis": [detailed image analysis],
-                "document_uploaded": "{key}",
-                "next_steps": [customer actions needed],
-                "remaining_requirements": [outstanding documentation]
-            }}
-
-            NOTIFICATION AND STATUS
-            ---------------------
-            1. Status Rules:
-            - DENIED if:
-                * Inconsistent damage
-                * Inactive policy
-            - PENDING if:
-                * Missing documentation
-            - APPROVED if:
-                * All requirements met
-                * Damage verified
-                * Active policy
-
-            2. Use sendNotification operation to send notification with:
-            - Damage assessment
-            - Current status
-            - Required documents
-            - Next steps
-            - Payment/deductible (if APPROVED)
-
-            CRITICAL REMINDERS
-            ----------------
-            - Include ONLY visible information
-            - Review ALL previous documents
-            - MAKE SURE TO format as proper JSON
-            - Include '{key}' in uploads
-            - Be specific about visible elements
-            - Verify all requirements before approval
-            - Include payment details for approved claims
-            - In the notifications, end with "Sincerely, AnyCompany Claims Department"
+            NOTIFICATION
+            -----------
+            Use sendNotification operation with damage assessment and next steps.
+            End with "Sincerely, AnyCompany Claims Department"
             """
 
         else:
@@ -144,105 +126,67 @@ def handler(event, context):
             }
             inputText = f"""
             
-            INITIAL DOCUMENT ANALYSIS
-            ------------------------
-            First, analyze '{file_name}' to extract any available information:
+            DOCUMENT ANALYSIS
+            ----------------
+            Analyze '{file_name}' to extract if present in document:
             - Claim ID (REQUIRED)
-            - Policy number
-            - Customer ID
+            - Policy number, Customer ID
             - Vehicle details (make/model/year/VIN)
             - Incident date and location
-            - Incident description
             - Total repair cost
-            
+
             VALIDATION CHECKS
-            ------------------------------------------------
-            1. Policy Status Check:
-            - Query knowledge base with exact policy number
-            - Confirm if status is 'ACTIVE'
-            - Record exact policy status for document_analysis
+            ----------------
+            1. Query knowledge base for policy status and coverage details if policy number is present in '{file_name}'
+            2. Calculate days between incident_date and {today_date} (must be within 30 days)
+            3. ALWAYS Use getClaimById operation to check for existing claims
+                - If exists: review history of the claim and the uploaded documents. Understand the status of the claim
+            4. Make sure to include a summary of what was found in the '{file_name}' in the document_analysis
+                - Here is an example: ("The initial claim form provided details about a rear-end collision involving a 2023 Honda CR-V on 2025-05-18 in Boston, MA. The vehicle is covered under an active premium policy AUTO-5678-9012. However, the claim is being denied as it was filed 78 days after the incident, which is outside the 30-day window required for filing claims based on the policy guidelines.") )
 
-            2. Timing Check:
-            - Calculate days between incident_date and {today_date}
-            - Verify if within 30-day window
-            - Document calculation in analysis
-
-            3. Existing Claim Check:
-            - ALWAYS Use getClaimById operation
-            - If exists: review history and uploaded documents
-            - Note current status
-            
             CLAIM PROCESSING
             ---------------
             Create claim ONCE with createClaim operation:
-            * IMPORTANT: All JSON fields must be properly quoted strings or valid JSON objects/arrays.
-            
-            claim_id: [extracted ID]
-            claim_details: {{
-                "customer_id": [extracted],
-                "policy_number": [extracted],
-                "active_policy": [if policy is active],
-                "reported_within_thirty_days": [true if the incident occurred within last 30 days],
-                "claim_type": [determined from description and knowledge base, accident/theft],
-                "incident_date": [extracted],
-                "incident_location": [extracted],
-                "total_repair_cost": [extracted]
-                "coverage_type": [from knowledge base],
-                "deductible": [from knowledge base],
-            }},
+            - Only include fields found in document. Do not include null/empty information in the table if not present!
+            Everything must be in proper JSON format!
 
-            "vehicle_info": {{
-                "make": [extracted],
-                "model": [extracted], 
-                "year": [extracted],
-                "vin": [extracted]
-            }},
-
-            documents: {{
-                "current_uploaded_documents": ["{file_name}"],
-                "required_documents": [from knowledge base]
+            {{
+                "claim_id": "[extracted from document]",
+                "claim_details": {{
+                    "policy_number": "[if present]",
+                    "customer_id": "[if present]",
+                    "incident_date": "[if present]",
+                    "incident_location": "[if present]",
+                    "total_repair_cost": "[if present]",
+                    "active_policy": "[true/false from KB]",
+                    "reported_within_thirty_days": "[calculated true/false]",
+                    "claim_type": "[accident/theft]",
+                    "coverage_type": "[from KB]",
+                    "deductible": "[from KB]"
+                }},
+                "vehicle_info": {{
+                    "make": "[if present]",
+                    "model": "[if present]",
+                    "year": "[if present]",
+                    "vin": "[if present]"
+                }},
+                "documents": {{
+                    "current_uploaded_documents": ["[list ALL uploaded files including {file_name}]"],
+                    "required_documents": ["[from KB based on claim type]"]
+                }},
+                "version_summary": {{
+                    "claim_status": "[APPROVED/PENDING/DENIED]",
+                    "document_analysis": "[Thorough summary of findings, description of incident, overview of claim status]",
+                    "document_uploaded": "{file_name}",
+                    "next_steps": "[the customer actions that are needed, the remaining docs needed]",
+                    "remaining_requirements": ["[doc1]", "[doc2]"]
+                }}
             }}
-            version_summary: {{
-                "claim_status": [determine based on ALL documents, not just this one],
-                "document_analysis": [Thorough summary of findings, description of incident, overview of claim status],
-                "document_uploaded": "{file_name}",
-                "next_steps": [what customer needs to do],
-                "remaining_requirements": [check what remaining uploads are necessary]
-            }}
-            
-            NOTIFICATION AND STATUS
-            ----------------------
-            
-            1. Status Rules:
-            - DENIED if:
-                * Inactive policy
-                * Outside 30-day window
-            - PENDING if:
-                * Missing required documents
-            - APPROVED if:
-                * Active policy
-                * All documents received
-                * Within 30-day window
 
-            2. Use sendNotification operation to send notification with:
-            - Upload confirmation
-            - Current status
-            - Missing requirements
-            - Next steps
-            - Payment/deductible (if APPROVED)
-
-            CRITICAL REMINDERS:
-            ------------------
-            - NEVER skip any validation step or the createClaim operation
-            - Process ALL available information
-            - Include '{file_name}' in uploaded documents
-            - Review ALL previous documents for existing claims
-            - MAKE SURE to Format all data as JSON
-            - Double-check date calculations
-            - For APPROVED claims, always include payment and deductible information in notifications
-            - For DENIED claims, include the reason as to why the claim got denied, mention "Please contact AnyCompany at 1-800-CLAIMS for questions about this denial"
-            - In the notifications, end with "Sincerely, AnyCompany Claims Department"
-            
+            NOTIFICATION
+            -----------
+            Use sendNotification operation with status and next steps.
+            End with "Sincerely, AnyCompany Claims Department"
             """
 
 
@@ -253,7 +197,7 @@ def handler(event, context):
         print("Starting agent invocation with timeout and retry configuration")
         print(f"DEBUG - Image file? {is_image_file(key)}")
         
-        max_retries = 3
+        max_retries = 2
         retry_delay = 5  # seconds
         response_text = ""
         

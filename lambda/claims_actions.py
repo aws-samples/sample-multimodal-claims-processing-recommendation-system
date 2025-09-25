@@ -9,6 +9,48 @@ def decimal_default(obj):
         return float(obj)
     raise TypeError
 
+def parse_equals_format(value_str):
+    """Convert string with equals signs to proper JSON format"""
+    try:
+        # Remove curly braces if present
+        value_str = value_str.strip('{}')
+        
+        # Split more intelligently - only split on commas that are followed by a key=
+        import re
+        # Find all key=value patterns
+        pattern = r'(\w+)=([^,]*(?:,[^=]*)*?)(?=,\s*\w+=|$)'
+        matches = re.findall(pattern, value_str)
+        
+        result = {}
+        for key, val in matches:
+            key = key.strip()
+            val = val.strip()
+            
+            # Convert boolean strings
+            if val.lower() == 'true':
+                val = True
+            elif val.lower() == 'false':
+                val = False
+            # Convert arrays
+            elif val.startswith('[') and val.endswith(']'):
+                array_content = val[1:-1]
+                if array_content:
+                    items = [item.strip() for item in array_content.split(',')]
+                    val = items
+                else:
+                    val = []
+            # Convert numbers
+            elif val.isdigit():
+                val = int(val)
+                
+            result[key] = val
+                
+        return result
+    except Exception as e:
+        print(f"Error parsing equals format: {str(e)}")
+        return {}
+
+
 def extract_properties(event):
     """Extract and parse properties from the event"""
     try:
@@ -22,10 +64,12 @@ def extract_properties(event):
             
             if prop_type == 'object':
                 try:
+                    # First try regular JSON parse
                     data[name] = json.loads(value.strip())
                 except json.JSONDecodeError:
-                    print(f"Failed to parse JSON for {name}")
-                    data[name] = {}
+                    # If that fails, try parsing equals format
+                    print(f"Attempting to parse equals format for {name}")
+                    data[name] = parse_equals_format(value)
             elif prop_type == 'array':
                 try:
                     data[name] = json.loads(value.strip())
@@ -36,6 +80,8 @@ def extract_properties(event):
                     data[name] = Decimal(str(value))
                 except:
                     data[name] = Decimal('0')
+            elif prop_type == 'boolean':
+                data[name] = value.lower() == 'true'
             else:  # string and other types
                 data[name] = value
                 
@@ -114,10 +160,12 @@ def handler(event, context):
                 'active_policy',
                 'incident_date',
                 'incident_location',
-                'estimated_cost_from_image',  
                 'total_repair_cost',           
                 'claim_type'
             }
+            
+            # Image analysis fields are dynamic and should always be preserved/updated
+            # These include: damage_description, damage_severity, affected_areas, estimated_cost_from_image
 
             # Convert any float values to Decimal
             def convert_to_decimal(details):

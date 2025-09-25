@@ -108,7 +108,7 @@ def handler(event, context):
         """
         
         response = bedrock.invoke_model(
-            modelId='anthropic.claude-3-sonnet-20240229-v1:0',
+            modelId='us.anthropic.claude-3-7-sonnet-20250219-v1:0',
             contentType='application/json',
             accept='application/json',
             body=json.dumps({
