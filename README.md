@@ -1,58 +1,192 @@
+# Intelligent Claims Processing System
 
-# Welcome to your CDK Python project!
+An AI-powered, serverless insurance claims processing system built with AWS CDK, Amazon Bedrock Agent, and Claude 3.7 Sonnet. This system automatically processes claim documents and images, validates policies, and makes intelligent approval decisions.
 
-This is a blank project for CDK development with Python.
+## 🚀 Features
 
-The `cdk.json` file tells the CDK Toolkit how to execute your app.
+### **Intelligent Document Processing**
+- **Multi-format Support**: Processes PDFs, images (PNG, JPG, JPEG, GIF)
+- **AI Document Analysis**: Extracts claim details, policy information, and incident data
+- **Image Damage Assessment**: AI-powered vehicle damage analysis with cost estimation
+- **Progressive Enhancement**: Each uploaded document enriches the existing claim
 
-This project is set up like a standard Python project.  The initialization
-process also creates a virtualenv within this project, stored under the `.venv`
-directory.  To create the virtualenv it assumes that there is a `python3`
-(or `python` for Windows) executable in your path with access to the `venv`
-package. If for any reason the automatic creation of the virtualenv fails,
-you can create the virtualenv manually.
+### **Business Logic Automation**
+- **Policy Validation**: Verifies active policies against knowledge base
+- **Timeline Compliance**: Enforces 30-day filing requirements
+- **Document Tracking**: Monitors required vs. submitted documents
+- **Automated Decisions**: PENDING → APPROVED/DENIED based on business rules
 
-To manually create a virtualenv on MacOS and Linux:
+### **Smart Data Management**
+- **Claim Versioning**: Complete audit trail of claim evolution
+- **Intelligent Merging**: Preserves static data, updates dynamic fields
+- **Robust Parsing**: Handles malformed JSON from AI agents
+- **Real-time Notifications**: Email alerts via SNS
 
-```
-$ python3 -m venv .venv
-```
-
-After the init process completes and the virtualenv is created, you can use the following
-step to activate your virtualenv.
-
-```
-$ source .venv/bin/activate
-```
-
-If you are a Windows platform, you would activate the virtualenv like this:
+## 🏗️ Architecture
 
 ```
-% .venv\Scripts\activate.bat
+S3 Upload → Lambda Trigger → Bedrock Agent → Action Groups → DynamoDB + SNS
+                                    ↓
+                            Knowledge Base (Vector Search)
 ```
 
-Once the virtualenv is activated, you can install the required dependencies.
+### **Core Components**
+- **AWS CDK**: Infrastructure as Code
+- **Amazon Bedrock**: AI Agent orchestration with Claude 3.7 Sonnet
+- **S3**: Document storage and knowledge base content
+- **DynamoDB**: Versioned claim data storage
+- **Lambda**: Processing logic and action groups
+- **SNS**: Email notifications
+- **Knowledge Base**: Policy validation and business rules
+
+## 📁 Project Structure
 
 ```
-$ pip install -r requirements.txt
+quest-2-intelligent-claims-processing/
+├── claims_quest/
+│   └── claims_quest_stack.py          # CDK infrastructure
+├── lambda/
+│   ├── index.py                       # Main processing function
+│   ├── claims_actions.py              # Claim management action group
+│   ├── image_analysis.py              # AI image analysis
+│   ├── get_claim.py                   # Claim retrieval
+│   └── send_notifications.py          # SNS notifications
+├── action_groups/
+│   ├── create_claims/schema.json      # Claims API schema
+│   ├── image_analysis/schema.json     # Image analysis API schema
+│   ├── get_claim/schema.json          # Claim retrieval API schema
+│   └── notifications/schema.json     # Notifications API schema
+├── knowledge-base/
+│   ├── claims/                        # Claim processing rules
+│   ├── policies/                      # Insurance policy guidelines
+│   ├── FAQ/                          # Frequently asked questions
+│   └── sample_insurance_policies/     # Sample policy data
+├── app.py                            # CDK app entry point
+├── requirements.txt                  # Python dependencies
+└── README.md
 ```
 
-At this point you can now synthesize the CloudFormation template for this code.
+## 🛠️ Setup & Deployment
 
+### **Prerequisites**
+- AWS CLI configured
+- Python 3.9+
+- Node.js 18+ (for CDK)
+- AWS CDK v2
+
+### **Installation**
+```bash
+# Clone repository
+git clone <repository-url>
+cd quest-2-intelligent-claims-processing
+
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate.bat
+
+# Install dependencies
+pip install -r requirements.txt
+
+# Install CDK (if not already installed)
+npm install -g aws-cdk
+
+# Bootstrap CDK (first time only)
+cdk bootstrap
 ```
-$ cdk synth
+
+### **Deploy**
+```bash
+# Synthesize CloudFormation template
+cdk synth
+
+# Deploy infrastructure
+cdk deploy
+
+# Note the output values (bucket names, agent IDs, etc.)
 ```
 
-To add additional dependencies, for example other CDK libraries, just add
-them to your `setup.py` file and rerun the `pip install -r requirements.txt`
-command.
+## 📋 Usage
 
-## Useful commands
+### **Processing Claims**
 
- * `cdk ls`          list all stacks in the app
- * `cdk synth`       emits the synthesized CloudFormation template
- * `cdk deploy`      deploy this stack to your default AWS account/region
- * `cdk diff`        compare deployed stack with current state
- * `cdk docs`        open CDK documentation
+1. **Upload Initial Claim Form** (PDF)
+   - System extracts policy details, incident information
+   - Creates new claim with PENDING status
+   - Validates policy against knowledge base
 
-Enjoy!
+2. **Upload Damage Photos** (PNG/JPG)
+   - AI analyzes damage severity and affected areas
+   - Estimates repair costs from visual assessment
+   - Updates claim with damage details
+
+3. **Upload Supporting Documents** (PDF)
+   - Repair estimates, police reports, etc.
+   - System validates completeness
+   - Makes final approval decision
+
+### **Example Workflow**
+```
+claim_sample1.pdf → Basic claim created (PENDING)
+damage_image.png → Damage analysis added (PENDING)  
+repair_estimate.pdf → Cost validation (PENDING)
+police_report.pdf → Final validation (APPROVED)
+```
+
+## 🧠 AI Capabilities
+
+### **Document Analysis**
+- **Text Extraction**: Policy numbers, dates, customer information
+- **Business Logic**: 30-day filing validation, coverage verification
+- **Context Awareness**: References previous documents in analysis
+
+### **Image Analysis**
+- **Damage Assessment**: Severity classification (minor/moderate/severe)
+- **Cost Estimation**: AI-powered repair cost estimates
+- **Area Identification**: Specific vehicle parts affected
+- **Visual Context**: Detailed damage descriptions
+
+### **Knowledge Base Integration**
+- **Policy Validation**: Real-time policy status checks
+- **Coverage Lookup**: Deductibles, coverage types, limits
+- **Business Rules**: Automated compliance checking
+
+## 📊 Data Structure
+
+### **Claim Record Example**
+```json
+{
+  "claim_id": "CLAIM-2025-001",
+  "version": "2025-09-25T06:25:35.250234",
+  "status": "APPROVED",
+  "claim_details": {
+    "policy_number": "AUTO-1234-5678",
+    "customer_id": "CUST-001",
+    "active_policy": true,
+    "incident_date": "2025-09-02",
+    "incident_location": "123 Main Street, Boston, MA",
+    "damage_description": "Rear-end collision damage...",
+    "damage_severity": "medium",
+    "estimated_cost_from_image": "$3,000-$5,000",
+    "total_repair_cost": "3,559.38"
+  },
+  "documents": {
+    "current_uploaded_documents": [
+      "claim_sample1.pdf",
+      "damage_image.png", 
+      "repair_estimate.pdf",
+      "police_report.pdf"
+    ],
+    "required_documents": [
+      "Photo of damage",
+      "Repair estimate", 
+      "Police report"
+    ]
+  },
+  "version_summary": {
+    "claim_status": "APPROVED",
+    "document_analysis": "Complete analysis summary...",
+    "next_steps": "Payment processing instructions...",
+    "remaining_requirements": []
+  }
+}
+```
