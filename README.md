@@ -69,9 +69,12 @@ multimodal-agentic-claims-processing/
 - Python 3.9+
 - Node.js 18+ (for CDK)
 - AWS CDK v2
+- Docker
 
 ### **Installation**
 ```bash
+## Install Docker through Desktop or CLI if you don't have it already before proceeding ##
+
 # Clone repository
 git clone <repository-url>
 cd multimodal-agentic-claims-processing
