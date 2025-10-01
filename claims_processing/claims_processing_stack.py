@@ -29,6 +29,7 @@ class ClaimsStack(Stack):
             versioned=True,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
+            enforce_ssl=True,
         )
         
     # 2 - S3 bucket for knowledge base
@@ -38,6 +39,7 @@ class ClaimsStack(Stack):
             versioned=True,
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
+            enforce_ssl=True,
         )
         
         # Automatic deployment of knowledge base files
