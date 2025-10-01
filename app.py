@@ -2,6 +2,7 @@
 import os
 
 import aws_cdk as cdk
+from cdk_nag import AwsSolutionsChecks
 
 from claims_processing.claims_processing_stack import ClaimsStack
 
@@ -24,5 +25,8 @@ ClaimsStack(app, "ClaimsStack",
 
     # For more information, see https://docs.aws.amazon.com/cdk/latest/guide/environments.html
     )
+
+# Add CDK Nag security checks
+cdk.Aspects.of(app).add(AwsSolutionsChecks(verbose=True))
 
 app.synth()

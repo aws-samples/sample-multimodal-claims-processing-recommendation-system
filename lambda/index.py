@@ -3,7 +3,6 @@ import boto3
 import os 
 from datetime import datetime
 from botocore.config import Config
-import time
 
 """
 MAIN PROCESSING LAMBDA - S3 Event Handler
@@ -34,8 +33,8 @@ def handler(event, context):
         connect_timeout=10,     # Connection timeout in seconds
         read_timeout=300,        # Read timeout in seconds
         retries={
-            'max_attempts': 2,  # Number of retry attempts
-            'mode': 'standard'  # Standard retry mode
+            'max_attempts': 3,  # Increased retry attempts since we're removing manual retry
+            'mode': 'adaptive'  # Adaptive retry mode with exponential backoff
         }
     )
     bedrock_agent = boto3.client('bedrock-agent-runtime', region_name=region, config=config)
@@ -205,48 +204,33 @@ def handler(event, context):
         print(f"Using session state: {json.dumps(sessionState)}")
         print(f"Using input text: {inputText}")
 
-        # Invoke the Bedrock agent with retry logic
+        # Invoke the Bedrock agent - retries handled by boto3 config
         print("Starting agent invocation with timeout and retry configuration")
         print(f"DEBUG - Image file? {is_image_file(key)}")
         
-        max_retries = 2
-        retry_delay = 5  # seconds
-        response_text = ""
-        
-        for retry_attempt in range(max_retries):
-            try:
-                print(f"Attempt {retry_attempt + 1}/{max_retries} to invoke agent")
-                agent_response = bedrock_agent.invoke_agent(
-                    agentId=agent_id,
-                    agentAliasId=agent_alias_id,
-                    sessionId=context.aws_request_id,
-                    inputText=inputText,
-                    sessionState=sessionState
-                )
-                
-                # Process the streaming response
-                response_text = ""
-                for event_chunk in agent_response['completion']:
-                    if 'chunk' in event_chunk:
-                        chunk = event_chunk['chunk']
-                        if 'bytes' in chunk:
-                            response_text += chunk['bytes'].decode('utf-8')
-                
-                # If we get here without exception, break out of retry loop
-                print("Agent invocation successful")
-                break
-                
-            except Exception as e:
-                print(f"Error on attempt {retry_attempt + 1}/{max_retries}: {str(e)}")
-                if retry_attempt < max_retries - 1:
-                    print(f"Retrying in {retry_delay} seconds...")
-                    time.sleep(retry_delay)
-                    # Increase delay for next retry (exponential backoff)
-                    retry_delay *= 2
-                else:
-                    # Last attempt failed
-                    print("All retry attempts failed")
-                    response_text = f"Error after {max_retries} attempts: {str(e)}"
+        try:
+            print("Invoking Bedrock agent with built-in retry logic")
+            agent_response = bedrock_agent.invoke_agent(
+                agentId=agent_id,
+                agentAliasId=agent_alias_id,
+                sessionId=context.aws_request_id,
+                inputText=inputText,
+                sessionState=sessionState
+            )
+            
+            # Process the streaming response
+            response_text = ""
+            for event_chunk in agent_response['completion']:
+                if 'chunk' in event_chunk:
+                    chunk = event_chunk['chunk']
+                    if 'bytes' in chunk:
+                        response_text += chunk['bytes'].decode('utf-8')
+            
+            print("Agent invocation successful")
+            
+        except Exception as e:
+            print(f"Agent invocation failed after all retries: {str(e)}")
+            response_text = f"Error invoking agent: {str(e)}"
         
         print("Agent Response Text:", response_text)
         
