@@ -1,6 +1,6 @@
-# Intelligent Claims Processing System
+# Multimodal Claims Processing Recommendation System
 
-An AI-powered, serverless insurance claims processing system built with AWS CDK, Amazon Bedrock Agent, and Claude 3.7 Sonnet. This system automatically processes claim documents and images, validates policies, and makes intelligent approval decisions.
+An AI-powered, serverless auto insurance claims processing system built with AWS CDK, Amazon Bedrock Agent, and Claude 3.7 Sonnet. This system automatically processes vehicle insurance claim documents and damage images, validates auto insurance policies, and makes intelligent approval decisions for automotive claims.
 
 ## Features
 
