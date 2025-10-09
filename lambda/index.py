@@ -112,6 +112,7 @@ def handler(event, context):
             NOTIFICATION
             -----------
             Use sendNotification operation with damage assessment and next steps.
+            Start with "Dear Customer"
             End with "Sincerely, AnyCompany Claims Department"
             """
 
@@ -197,6 +198,7 @@ def handler(event, context):
             NOTIFICATION
             -----------
             Use sendNotification operation with status and next steps.
+            Start with "Dear Customer"
             End with "Sincerely, AnyCompany Claims Department"
             """
 
