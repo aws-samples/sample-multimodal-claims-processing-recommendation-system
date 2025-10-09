@@ -13,6 +13,7 @@ from aws_cdk import (
     Duration
 )
 from constructs import Construct
+from cdk_nag import NagSuppressions
 from cdklabs.generative_ai_cdk_constructs import (
     bedrock
 )
@@ -22,6 +23,15 @@ class ClaimsStack(Stack):
     def __init__(self, scope: Construct, construct_id: str, **kwargs) -> None:
         super().__init__(scope, construct_id, **kwargs)
 
+    # Access logs bucket for S3 server access logging
+        access_logs_bucket = s3.Bucket(
+            self,
+            "AccessLogsBucket",
+            removal_policy=RemovalPolicy.DESTROY,
+            auto_delete_objects=True,
+            enforce_ssl=True,
+        )
+
     # 1 - Creating an S3 bucket for storing claim documents
         claims_bucket = s3.Bucket(
             self, 
@@ -30,6 +40,8 @@ class ClaimsStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             enforce_ssl=True,
+            server_access_logs_bucket=access_logs_bucket,
+            server_access_logs_prefix="claims-bucket-logs/"
         )
         
     # 2 - S3 bucket for knowledge base
@@ -40,6 +52,8 @@ class ClaimsStack(Stack):
             removal_policy=RemovalPolicy.DESTROY,
             auto_delete_objects=True,
             enforce_ssl=True,
+            server_access_logs_bucket=access_logs_bucket,
+            server_access_logs_prefix="kb-bucket-logs/"
         )
         
         # Automatic deployment of knowledge base files
@@ -85,6 +99,17 @@ class ClaimsStack(Stack):
             self,
             "ClaimsTopic",
             display_name="Claims Processing Notifications"
+        )
+        
+        # Enforce SSL for SNS publishers
+        claims_topic.add_to_resource_policy(
+            iam.PolicyStatement(
+                effect=iam.Effect.DENY,
+                principals=[iam.AnyPrincipal()],
+                actions=["sns:Publish"],
+                resources=[claims_topic.topic_arn],
+                conditions={"Bool": {"aws:SecureTransport": "false"}}
+            )
         )
         
         # Email subscription - configurable via CDK context
@@ -423,6 +448,136 @@ class ClaimsStack(Stack):
             self, "ClaimsBucketArn",
             value=claims_bucket.bucket_arn,
             description="ARN of the claims bucket"
+        )
+        
+        # NAG Suppressions for acceptable security findings
+        # Suppress AWS managed policies for Lambda execution roles
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/ClaimsManagementFunction/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AWS managed policy for Lambda basic execution is acceptable for samples"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/DamageAssessmentFunction/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AWS managed policy for Lambda basic execution is acceptable for samples"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/CustomerNotificationFunction/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AWS managed policy for Lambda basic execution is acceptable for samples"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/ClaimRetrievalFunction/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AWS managed policy for Lambda basic execution is acceptable for samples"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/EventProcessorFunction/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AWS managed policy for Lambda basic execution is acceptable for samples"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/BedrockAgentRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "AmazonBedrockFullAccess managed policy required for Bedrock agent functionality"}]
+        )
+        
+        # Suppress wildcard permissions that are necessary for functionality
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/DamageAssessmentFunction/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for S3 object operations and DynamoDB index access"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/EventProcessorFunction/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for S3 object operations, DynamoDB index access, and Bedrock model invocation"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/BedrockAgentRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for Lambda function invocation with different versions"}]
+        )
+        
+        # Suppress CDK deployment function findings
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "CDK deployment function uses AWS managed policy by design"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "CDK deployment function requires wildcard permissions for S3 operations"}]
+        )
+        
+        # Suppress remaining Lambda function suppressions
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/ClaimsManagementFunction/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for DynamoDB index access"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/ClaimRetrievalFunction/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for DynamoDB index access"}]
+        )
+        
+        # Suppress CDK internal functions
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole",
+            [{"id": "AwsSolutions-IAM4", "reason": "CDK log retention function uses AWS managed policy by design"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role",
+            [{"id": "AwsSolutions-IAM4", "reason": "CDK bucket notifications handler uses AWS managed policy by design"}]
+        )
+        
+        # Suppress wildcard permissions for CDK internal functions
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/LogRetentionaae0aa3c5b4d4f87b02d85b201efdd8a/ServiceRole/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "CDK log retention function requires wildcard permissions for CloudWatch logs"}]
+        )
+        
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/BucketNotificationsHandler050a0587b7544547bf325f094a3db834/Role/DefaultPolicy",
+            [{"id": "AwsSolutions-IAM5", "reason": "CDK bucket notifications handler requires wildcard permissions"}]
+        )
+        
+        # Suppress BedrockAgentRole S3 wildcard
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/BedrockAgentRole",
+            [{"id": "AwsSolutions-IAM5", "reason": "Wildcard permissions required for S3 bucket object access"}]
+        )
+        
+        # Suppress CDK Lambda runtime version
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/Custom::CDKBucketDeployment8693BB64968944B69AAFB0CC9EB8756C",
+            [{"id": "AwsSolutions-L1", "reason": "CDK deployment function runtime managed by CDK framework"}]
+        )
+        
+        # Suppress DynamoDB Point-in-Time Recovery warning
+        NagSuppressions.add_resource_suppressions_by_path(
+            self,
+            "/ClaimsStack/ClaimsTable",
+            [{"id": "AwsSolutions-DDB3", "reason": "Point-in-time recovery not required for sample application"}]
         )
         
     
