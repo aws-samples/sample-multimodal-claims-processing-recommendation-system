@@ -224,3 +224,15 @@ The `sample-claims/` folder contains sample documents for testing the end-to-end
  * `cdk deploy`      deploy this stack to your default AWS account/region
  * `cdk diff`        compare deployed stack with current state
  * `cdk docs`        open CDK documentation
+
+## Authors
+
+This project was created by **[Harshita Tirumalapudi](https://www.linkedin.com/in/harshita-tir/)** - AWS Partner Solutions Architect
+
+## Security
+
+See [CONTRIBUTING](CONTRIBUTING.md#security-issue-notifications) for more information.
+
+## License
+
+This library is licensed under the MIT-0 License. See the LICENSE file.
